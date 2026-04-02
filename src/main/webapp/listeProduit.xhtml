@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+    <title>Gestion des Articles</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f4f4f4;
+        }
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 22px;
+        }
+        .footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            margin-top: 30px;
+            background: white;
+            padding: 30px;
+            border-radius: 6px;
+            box-shadow: 0px 0px 8px rgba(0,0,0,0.1);
+            padding-bottom: 60px; /* footer space */
+        }
+        .menu {
+            margin-bottom: 20px;
+        }
+        .ui-confirm-dialog-footer .ui-button {
+            margin-right: 5px;
+        }
+    </style>
+</h:head>
+
+<h:body>
+    <!-- HEADER -->
+    <div class="header">
+        Gestion des Articles
+    </div>
+
+    <!-- MENU -->
+    <h:form>
+        <p:menubar styleClass="menu">
+            <p:menuitem value="Accueil" icon="pi pi-home" url="#"/>
+            <p:menuitem value="Produits" icon="pi pi-list" url="#"/>
+            <p:menuitem value="Nouveau Produit" icon="pi pi-plus" 
+                        onclick="PF('dlg').show()" type="button" />
+        </p:menubar>
+    </h:form>
+
+    <!-- CONTENT -->
+    <div class="container">
+        <h:form id="form">
+            <p:growl id="growl" showDetail="true" life="3000"/>
+
+            <p:dataTable id="tableProduits" value="#{produitBean.produits}" var="a" 
+                         paginator="true" rows="5" stripedRows="true"
+                         responsiveLayout="scroll" paginatorPosition="bottom"
+                         rowsPerPageTemplate="5,10,15"
+                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                         currentPageReportTemplate="Articles {startRecord}-{endRecord} sur {totalRecords}">
+
+                <p:column headerText="Nom" sortBy="#{a.name}" filterBy="#{a.name}">
+                    <h:outputText value="#{a.name}"/>
+                </p:column>
+
+                <p:column headerText="Prix" sortBy="#{a.price}" filterBy="#{a.price}">
+                    <h:outputText value="#{a.price}"/>
+                </p:column>
+
+                <p:column headerText="Actions" style="text-align: center;">
+                    <!-- Edit Button (Bonus: prepare for modification) -->
+                    <p:commandButton icon="pi pi-pencil" 
+                                     styleClass="ui-button-primary" style="margin-right: .5rem"
+                                     actionListener="#{produitBean.prepareEdit(a)}"
+                                     update=":dialogForm"
+                                     oncomplete="PF('dlg').show()"/>
+                    
+                    <!-- Delete Button -->
+                    <p:commandButton value="Supprimer" icon="pi pi-trash" 
+                                     styleClass="ui-button-danger"
+                                     actionListener="#{produitBean.delete(a.id)}"
+                                     update="@form">
+                        <p:confirm header="Confirmation" 
+                                   message="Voulez-vous vraiment supprimer cet article ?" 
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+                </p:column>
+            </p:dataTable>
+
+            <h:outputText value="No articles yet. Please add one." 
+                          rendered="#{empty produitBean.produits}"
+                          style="display: block; text-align: center; margin-top: 20px;" />
+        </h:form>
+    </div>
+
+    <!-- DIALOG ADD/EDIT PRODUCT -->
+    <p:dialog header="Produit Info" widgetVar="dlg" modal="true" closable="true" responsive="true">
+        <h:form id="dialogForm">
+            <h:panelGrid columns="1" style="width: 100%; margin-bottom: 20px;">
+                <p:outputLabel for="name" value="Nom" style="font-weight: bold;" />
+                <p:inputText id="name" value="#{produitBean.produit.name}" required="true" style="width: 100%; margin-bottom: 10px;" />
+
+                <p:outputLabel for="price" value="Prix" style="font-weight: bold;" />
+                <p:inputNumber id="price" value="#{produitBean.produit.price}" required="true" style="width: 100%;" />
+            </h:panelGrid>
+
+            <div style="text-align: right; margin-top: 10px;">
+                <p:commandButton value="Enregistrer" icon="pi pi-check" 
+                                 actionListener="#{produitBean.save()}" 
+                                 update=":form:tableProduits :form:growl" 
+                                 oncomplete="if (!args.validationFailed) PF('dlg').hide()"
+                                 styleClass="ui-button-success" style="margin-right: 10px;"/>
+                <p:commandButton value="Annuler" icon="pi pi-times" 
+                                 onclick="PF('dlg').hide()" type="button" 
+                                 styleClass="ui-button-secondary" />
+            </div>
+        </h:form>
+    </p:dialog>
+
+    <!-- GLOBAL CONFIRM DIALOG -->
+    <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350">
+        <p:commandButton value="Oui" type="button" styleClass="ui-confirmdialog-yes ui-button-danger" icon="pi pi-check" />
+        <p:commandButton value="Non" type="button" styleClass="ui-confirmdialog-no ui-button-secondary" icon="pi pi-times" />
+    </p:confirmDialog>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        Java EE / PrimeFaces Application
+    </div>
+</h:body>
+</html>
